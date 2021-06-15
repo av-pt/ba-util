@@ -8,7 +8,7 @@ import shutil
 
 from tqdm import tqdm
 
-from converters import available_transcriptions, transcribe_horizontal
+from converters import transcribe_horizontal
 
 """
 python transcribe.py -i ../unmasking/NAACL-19/corpus/pan20/gb.jsonl -o ../unmasking/NAACL-19/corpus/pan20/transcribed -t ../unmasking/NAACL-19/corpus/pan20/gb-truth.jsonl -s
@@ -49,7 +49,7 @@ def main():
 
     # Input: PAN20 file (relative path given)
     # Output: Transcribed PAN20 files in data/transcribed/
-    transcription_systems = available_transcriptions()
+    transcription_systems = transcribe_horizontal('').keys()
     print(f'Transcribing to {len(transcription_systems)} systems:')
     print(transcription_systems)
 
@@ -80,7 +80,7 @@ def main():
             logging.error(traceback.format_exc())
             continue  # Skip persisting if exception occurs
 
-        for system in transcription_systems:
+        for system in first_transcriptions.keys():
             copy['pair'] = [first_transcriptions[system], second_transcriptions[system]]
             if args.separate_folders:
                 persist_jsonl(os.path.join(output_folder, system, f'{system}_{os.path.basename(args.input)}'), copy)

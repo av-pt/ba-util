@@ -124,17 +124,6 @@ def ipa2sc(ipa_transcription, sound_class_system='dolgo'):
     return char_sound_class
 
 
-def available_transcriptions():
-    """
-    Returns a list of useful transcriptions. TODO: Rename function.
-    """
-    sound_classes = {'cv', 'dolgo', 'asjp'}
-    transcription_systems = {'ipa', 'soundex', 'refsoundex'}
-    systems = sound_classes.union(transcription_systems)
-    misc_transcriptions = {'lemma', 'lemma_punct', 'lemma_punct_stop', 'punct'}
-    return sorted(list(set().union(systems, misc_transcriptions, )))
-
-
 # @profile
 def transcribe_horizontal(verbatim):
     """
@@ -159,22 +148,22 @@ def transcribe_horizontal(verbatim):
                                                        and not token.is_punct
                                                        and not token.like_num)])
 
-    # Create IPA transcription
-    ipa_transcription = ''
-    phonemes = g2p_en(verbatim)
-    for symbol in phonemes:
-        if symbol in arpabet2ipa_no_stress.keys():
-            ipa_transcription += arpabet2ipa_no_stress[symbol]
-        else:
-            ipa_transcription += symbol
-    transcriptions['ipa'] = ipa_transcription
-
-    # Create Sound Class transcriptions, reusing IPA transcriptions
-    for sound_class in {'cv', 'dolgo', 'asjp'}:
-        transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
-
-    # Create Soundex transcriptions        
-    transcriptions['soundex'] = g2p_pyphonetics(verbatim, soundex)
-    transcriptions['refsoundex'] = g2p_pyphonetics(verbatim, refsoundex)
+    # # Create IPA transcription
+    # ipa_transcription = ''
+    # phonemes = g2p_en(verbatim)
+    # for symbol in phonemes:
+    #     if symbol in arpabet2ipa_no_stress.keys():
+    #         ipa_transcription += arpabet2ipa_no_stress[symbol]
+    #     else:
+    #         ipa_transcription += symbol
+    # transcriptions['ipa'] = ipa_transcription
+    #
+    # # Create Sound Class transcriptions, reusing IPA transcriptions
+    # for sound_class in {'cv', 'dolgo', 'asjp'}:
+    #     transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
+    #
+    # # Create Soundex transcriptions
+    # transcriptions['soundex'] = g2p_pyphonetics(verbatim, soundex)
+    # transcriptions['refsoundex'] = g2p_pyphonetics(verbatim, refsoundex)
 
     return transcriptions

@@ -54,9 +54,7 @@ def main():
                 doc = nlp(text)
                 types.update([token.text.lower()
                               for token in doc
-                              if (not token.is_punct and not token.like_num)][:50])
-                print(types)
-                break
+                              if (not token.is_punct and not token.like_num)])
 
         print(f'Types: {len(types)}\n')
         type_dto[dir_entry.name] = len(types)

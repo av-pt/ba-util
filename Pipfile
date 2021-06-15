@@ -10,6 +10,11 @@ matplotlib = "*"
 tqdm = "*"
 spacy = "*"
 line-profiler = "*"
+nltk = "*"
+g2p-en = "*"
+pyclts = "*"
+pyphonetics = "*"
+ujson = "*"
 
 [dev-packages]
 
