@@ -7,6 +7,9 @@ name = "pypi"
 pandas = "*"
 numpy = "*"
 matplotlib = "*"
+tqdm = "*"
+spacy = "*"
+line-profiler = "*"
 
 [dev-packages]
 
