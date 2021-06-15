@@ -47,7 +47,7 @@ def persistent_cache(func):
     return wrapper
 
 
-clts = CLTS('clts/')
+clts = CLTS(os.path.join('ba-util', 'clts'))
 
 inner_g2p_en = G2p()
 
