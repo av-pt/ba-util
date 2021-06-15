@@ -3,20 +3,30 @@ Script to compute vocab size reduction due to phonetic transcription.
 """
 import argparse
 import os
+import sys
 import time
 from tqdm import tqdm
 import spacy
 import json
 from glob import glob
 
-import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
 nlp = spacy.load('en_core_web_sm', exclude=['tok2vec', 'parser', 'ner'])
 
 
 def now(): return time.strftime("%Y-%m-%d_%H-%M-%S")
+
+
+def plot(type_dto, name):
+    # Math labels
+    # for key, value in type_dto.items():
+    #     type_dto[f'${key}$'] = type_dto.pop(key)
+
+    plt.figure(figsize=(8,6))#, dpi=80)
+    plt.bar(*zip(*sorted(type_dto.items(), key=lambda x: x[1], reverse=True)))
+    plt.xticks(rotation='vertical')
+    plt.savefig(f'{name[:-5]}.svg', format="svg", bbox_inches='tight')
 
 
 def main():
@@ -26,12 +36,20 @@ def main():
         add_help=True)
     parser.add_argument('--input',
                         '-i',
-                        required=True,
                         help='Path to a directory of PAN20 datasets')
+    parser.add_argument('--plot',
+                        '-p',
+                        help='Path to a vocab sizes .json file')
     parser.add_argument('--output',
                         '-o',
                         help='Name to tag the output file')
     args = parser.parse_args()
+
+    if args.plot is not None:
+        with open(args.plot, 'r') as f:
+            type_dto = json.load(f)
+            plot(type_dto, args.plot)
+            sys.exit(0)
 
     directory = [d for d in os.scandir(args.input)]
     print(f'Found {len(directory)} unmasking results.')
@@ -62,11 +80,6 @@ def main():
     os.makedirs('data', exist_ok=True)
     with open(os.path.join('data', output_filename), 'w') as f:
         json.dump(type_dto, f)
-
-    # Plot
-
-    plt.bar(*zip(*sorted(type_dto.items(), key=lambda x: x[1], reverse=True)))
-    plt.show()
 
 
 if __name__ == '__main__':
