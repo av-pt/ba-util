@@ -15,6 +15,7 @@ g2p-en = "*"
 pyclts = "*"
 pyphonetics = "*"
 ujson = "*"
+adjusttext = "*"
 
 [dev-packages]
 

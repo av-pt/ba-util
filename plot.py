@@ -22,6 +22,7 @@ import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from adjustText import adjust_text
 
 
 manual_order = [
@@ -132,15 +133,17 @@ def main():
             type_dto = json.load(f)
         for measure, values in df.iteritems():
 
+            plt.figure(figsize=(5, 3.5))
             x_values = []
             y_values = []
             labels = []
+            texts = []
             for k, v in values.iteritems():
                 x_values.append(type_dto[k])
                 y_values.append(v)
                 labels.append(k)
+                texts.append(plt.text(type_dto[k], v, k))
 
-            plt.figure(figsize=(5, 3.5))
             plt.ylim(0, 1)
             plt.title(f'{measure_to_label[measure]} vs. vocabulary size')
             plt.xlabel('Vocabulary size')
@@ -151,6 +154,8 @@ def main():
             m, b = np.polyfit(x_values, y_values, 1)
             p = np.poly1d([m, b])
             plt.plot(x_values, p(x_values), 'k', linewidth=1)
+            steps = adjust_text(texts, force_points=1, autoalign='y', arrowprops=dict(arrowstyle='->', color='black', lw=0.5))
+            print(f'Label placement iterations for {measure}: {steps}')
 
             plt.savefig(os.path.join(out_path, f'{measure}.svg'), format='svg', bbox_inches='tight')
 

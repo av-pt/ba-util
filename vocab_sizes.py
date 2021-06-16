@@ -23,7 +23,7 @@ def plot(type_dto, name):
     # for key, value in type_dto.items():
     #     type_dto[f'${key}$'] = type_dto.pop(key)
 
-    plt.figure(figsize=(8,6))#, dpi=80)
+    plt.figure(figsize=(5, 3.5))
     plt.bar(*zip(*sorted(type_dto.items(), key=lambda x: x[1], reverse=True)))
     plt.xticks(rotation='vertical')
     plt.savefig(f'{name[:-5]}.svg', format='svg', bbox_inches='tight')
