@@ -42,12 +42,16 @@ manual_order = [
 measure_to_label = {
     'accuracy': 'Accuracy',
     'c_at_1': 'c@1',
+    'c@1': 'c@1',
     'frac_classified': 'Fraction classified',
     'f1': 'F1',
+    'F1': 'F1',
     'precision': 'Precision',
     'recall': 'Recall',
     'recall_total': 'Recall total',
     'f_05_u': 'F0.5u',
+    'auc': 'AUC',
+    'overall': 'Overall'
 }
 
 
@@ -126,6 +130,20 @@ def main():
             plt.ylim(0, 1)
             plt.title(measure_to_label[measure])
             plt.grid(axis='y')
+
+            # Add differences to first bar
+            for i in range(1, len(values)):
+                diff = round(values[i]-values[0], 4)
+                if diff < 0:
+                    color = 'r'
+                    diff = f' -{abs(diff)}'
+                elif diff > 0:
+                    color = 'g'
+                    diff = f' +{diff}'
+                else:
+                    color = 'k'
+                plt.text(i, values[i], diff, ha='center', rotation='vertical', color=color)
+
             plt.savefig(os.path.join(out_path, f'{measure}.svg'), format='svg', bbox_inches='tight')
             plt.clf()
     else:
