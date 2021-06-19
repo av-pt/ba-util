@@ -41,7 +41,7 @@ def main():
         parser.exit(1)
     output_folder = args.output
     if args.output == '':
-        output_folder = os.path.join('data', f'transcibed_{now()}')
+        output_folder = os.path.join('data', f'transcribed_{now()}')
         os.makedirs(os.path.dirname('data/'), exist_ok=True)
         os.makedirs(os.path.dirname(os.path.join('data', 'transcribed/')), exist_ok=True)
     else:
