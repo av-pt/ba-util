@@ -60,6 +60,8 @@ def main():
 
     type_dto = dict()
 
+    os.makedirs('data', exist_ok=True)
+
     # Go through PAN20 data files and add tokens to set
     for dir_entry in directory:
         paths = glob(os.path.join(dir_entry.path, '*.jsonl'))
@@ -77,9 +79,8 @@ def main():
         print(f'Types: {len(types)}\n')
         type_dto[dir_entry.name] = len(types)
 
-    os.makedirs('data', exist_ok=True)
-    with open(os.path.join('data', output_filename), 'w') as f:
-        json.dump(type_dto, f)
+        with open(os.path.join('data', output_filename), 'w') as f:
+            json.dump(type_dto, f)
 
 
 if __name__ == '__main__':
