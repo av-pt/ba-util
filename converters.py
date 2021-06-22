@@ -7,7 +7,7 @@ from g2p_en import G2p
 from nltk import word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 from pyclts import CLTS
-from pyphonetics import Soundex, RefinedSoundex
+from pyphonetics import Soundex, RefinedSoundex, Metaphone
 
 
 def dump_with_message(msg, cache_loaded, cache_changed, obj, file_path, **kwargs):
@@ -79,6 +79,7 @@ arpabet2ipa_no_stress = {**arpabet2ipa_orig, **no_primary_stress, **no_secondary
 
 soundex = Soundex()
 refsoundex = RefinedSoundex()
+metaphone = Metaphone()
 
 detokenizer = TreebankWordDetokenizer()
 
@@ -91,7 +92,8 @@ def g2p_pyphonetics(verbatim, transcription_model):
             transcribed_tokens.append(transcription_model.phonetics(token))
         else:
             transcribed_tokens.append(token)
-    transcription = detokenizer.detokenize(transcribed_tokens)
+    #transcription = detokenizer.detokenize(transcribed_tokens)
+    transcription = ' '.join(transcribed_tokens)
     return transcription
 
 
@@ -121,6 +123,8 @@ def ipa2sc(ipa_transcription, sound_class_system='dolgo'):
                 symbol in ipa_transcription]
     char_sound_class = ''.join(
         [clts_translate(symbol, sound_class_system) if tag == 's' else symbol for symbol, tag in char_ipa])
+    # char_sound_class = ''.join(
+    #     [clts_translate(symbol, sound_class_system) if tag == 's' else ' ' for symbol, tag in char_ipa])
     return char_sound_class
 
 
@@ -135,35 +139,36 @@ def transcribe_horizontal(verbatim):
 
     # Create miscellaneous transcriptions
     doc = nlp(verbatim)
-    transcriptions['lemma'] = ' '.join([token.lemma_ for token in doc])
-    transcriptions['punct'] = ' '.join([token.text.lower()
-                                        for token in doc
-                                        if (not token.is_punct and not token.like_num)])
-    transcriptions['lemma_punct'] = ' '.join([token.lemma_
-                                              for token in doc
-                                              if not token.is_punct])
-    transcriptions['lemma_punct_stop'] = ' '.join([token.lemma_
-                                                   for token in doc
-                                                   if (not token.is_stop
-                                                       and not token.is_punct
-                                                       and not token.like_num)])
-
-    # Create IPA transcription
-    ipa_transcription = ''
-    phonemes = g2p_en(verbatim)
-    for symbol in phonemes:
-        if symbol in arpabet2ipa_no_stress.keys():
-            ipa_transcription += arpabet2ipa_no_stress[symbol]
-        else:
-            ipa_transcription += symbol
-    transcriptions['ipa'] = ipa_transcription
-
-    # Create Sound Class transcriptions, reusing IPA transcriptions
-    for sound_class in {'cv', 'dolgo', 'asjp'}:
-        transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
+    # transcriptions['lemma'] = ' '.join([token.lemma_ for token in doc])
+    # transcriptions['punct'] = ' '.join([token.text.lower()
+    #                                     for token in doc
+    #                                     if (not token.is_punct and not token.like_num)])
+    # transcriptions['lemma_punct'] = ' '.join([token.lemma_
+    #                                           for token in doc
+    #                                           if not token.is_punct])
+    # transcriptions['lemma_punct_stop'] = ' '.join([token.lemma_
+    #                                                for token in doc
+    #                                                if (not token.is_stop
+    #                                                    and not token.is_punct
+    #                                                    and not token.like_num)])
+    #
+    # # Create IPA transcription
+    # ipa_transcription = ''
+    # phonemes = g2p_en(verbatim)
+    # for symbol in phonemes:
+    #     if symbol in arpabet2ipa_no_stress.keys():
+    #         ipa_transcription += arpabet2ipa_no_stress[symbol]
+    #     else:
+    #         ipa_transcription += symbol
+    # transcriptions['ipa'] = ipa_transcription
+    #
+    # # Create Sound Class transcriptions, reusing IPA transcriptions
+    # for sound_class in {'cv', 'dolgo', 'asjp'}:
+    #     transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
 
     # Create Soundex transcriptions
-    transcriptions['soundex'] = g2p_pyphonetics(verbatim, soundex)
-    transcriptions['refsoundex'] = g2p_pyphonetics(verbatim, refsoundex)
+    transcriptions['soundex'] = ' '.join([soundex.phonetics(token.text) for token in doc if token.is_alpha])
+    transcriptions['refsoundex'] = ' '.join([refsoundex.phonetics(token.text) for token in doc if token.is_alpha])
+    transcriptions['metaphone'] = ' '.join([metaphone.phonetics(token.text) for token in doc if token.is_alpha])
 
     return transcriptions
