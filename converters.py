@@ -2,6 +2,10 @@ import atexit
 import os
 import re
 import spacy
+from spacy.lang.char_classes import ALPHA, ALPHA_LOWER, ALPHA_UPPER
+from spacy.lang.char_classes import CONCAT_QUOTES, LIST_ELLIPSES, LIST_ICONS
+from spacy.util import compile_suffix_regex
+
 import ujson
 from g2p_en import G2p
 from nltk import word_tokenize
@@ -57,8 +61,17 @@ def g2p_en(verbatim):
     return inner_g2p_en(verbatim)
 
 
+nlp_no_apostrophe_split = spacy.load('en_core_web_sm', exclude=['parser', 'ner'])
+nlp_no_apostrophe_split.tokenizer.rules = {key: value for key, value in nlp_no_apostrophe_split.tokenizer.rules.items() if "'" not in key and "’" not in key and "‘" not in key}
+suffixes = [suffix for suffix in nlp_no_apostrophe_split.Defaults.suffixes if suffix not in ["'s", "'S", '’s', '’S']]
+suffix_regex = spacy.util.compile_suffix_regex(suffixes)
+nlp_no_apostrophe_split.tokenizer.suffix_search = suffix_regex.search
 nlp = spacy.load('en_core_web_sm', exclude=['parser', 'ner'])
-# nlp.analyze_pipes(pretty=True)
+nlp.tokenizer.suffix_search = suffix_regex.search
+
+# print(nlp.Defaults.suffixes)
+# Remove apostrophe rules, so tokens like "I'm" are not split up
+
 
 # Arpabet to IPA dict with stress
 arpabet2ipa_orig = {'AA': 'ɑ', 'AE': 'æ', 'AH': 'ʌ', 'AO': 'ɔ', 'AW': 'aʊ', 'AX': 'ə', 'AXR': 'ɚ', 'AY': 'aɪ',
@@ -92,7 +105,7 @@ def g2p_pyphonetics(verbatim, transcription_model):
             transcribed_tokens.append(transcription_model.phonetics(token))
         else:
             transcribed_tokens.append(token)
-    #transcription = detokenizer.detokenize(transcribed_tokens)
+    # transcription = detokenizer.detokenize(transcribed_tokens)
     transcription = ' '.join(transcribed_tokens)
     return transcription
 
@@ -110,6 +123,9 @@ def clts_translate(symbol, sound_class_system):
     return clts.bipa.translate(symbol, sc[sound_class_system])
 
 
+whitespaces_regex = re.compile(r"\s+")
+
+
 def ipa2sc(ipa_transcription, sound_class_system='dolgo'):
     """
     Takes an IPA transcribed, phoneme segmented string and replaces each
@@ -122,10 +138,10 @@ def ipa2sc(ipa_transcription, sound_class_system='dolgo'):
     char_ipa = [(arpabet2ipa_no_stress[symbol], 's') if symbol in arpabet2ipa_no_stress.keys() else (symbol, 'p') for
                 symbol in ipa_transcription]
     char_sound_class = ''.join(
-        [clts_translate(symbol, sound_class_system) if tag == 's' else symbol for symbol, tag in char_ipa])
+        [clts_translate(symbol, sound_class_system) if tag == 's' else ' ' for symbol, tag in char_ipa])
     # char_sound_class = ''.join(
     #     [clts_translate(symbol, sound_class_system) if tag == 's' else ' ' for symbol, tag in char_ipa])
-    return char_sound_class
+    return whitespaces_regex.sub(' ', char_sound_class).strip()
 
 
 # @profile
@@ -138,37 +154,36 @@ def transcribe_horizontal(verbatim):
     transcriptions = dict()
 
     # Create miscellaneous transcriptions
-    doc = nlp(verbatim)
-    # transcriptions['lemma'] = ' '.join([token.lemma_ for token in doc])
-    # transcriptions['punct'] = ' '.join([token.text.lower()
-    #                                     for token in doc
-    #                                     if (not token.is_punct and not token.like_num)])
-    # transcriptions['lemma_punct'] = ' '.join([token.lemma_
-    #                                           for token in doc
-    #                                           if not token.is_punct])
-    # transcriptions['lemma_punct_stop'] = ' '.join([token.lemma_
-    #                                                for token in doc
-    #                                                if (not token.is_stop
-    #                                                    and not token.is_punct
-    #                                                    and not token.like_num)])
-    #
-    # # Create IPA transcription
-    # ipa_transcription = ''
-    # phonemes = g2p_en(verbatim)
-    # for symbol in phonemes:
-    #     if symbol in arpabet2ipa_no_stress.keys():
-    #         ipa_transcription += arpabet2ipa_no_stress[symbol]
-    #     else:
-    #         ipa_transcription += symbol
-    # transcriptions['ipa'] = ipa_transcription
-    #
-    # # Create Sound Class transcriptions, reusing IPA transcriptions
-    # for sound_class in {'cv', 'dolgo', 'asjp'}:
-    #     transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
+    doc_no_apostrophe_split = nlp_no_apostrophe_split(verbatim.strip())
+    doc = nlp(verbatim.strip())
+    transcriptions['punct'] = ' '.join([token.text.lower()
+                                        for token in doc_no_apostrophe_split
+                                        if not token.is_punct])
+    transcriptions['punct_lemma'] = ' '.join([token.lemma_
+                                              for token in doc
+                                              if not token.is_punct])
+    transcriptions['punct_lemma_stop'] = ' '.join([token.lemma_
+                                                   for token in doc
+                                                   if (not token.is_stop
+                                                       and not token.is_punct)])
+
+    # Create IPA transcription
+    ipa_transcription = ''
+    phonemes = g2p_en(verbatim)
+    for symbol in phonemes:
+        if symbol in arpabet2ipa_no_stress.keys():
+            ipa_transcription += arpabet2ipa_no_stress[symbol]
+        elif symbol == ' ' and not ipa_transcription.endswith(' '):
+            ipa_transcription += symbol
+    transcriptions['ipa'] = ipa_transcription
+
+    # Create Sound Class transcriptions, reusing IPA transcriptions
+    for sound_class in {'cv', 'dolgo', 'asjp'}:
+        transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
 
     # Create Soundex transcriptions
-    transcriptions['soundex'] = ' '.join([soundex.phonetics(token.text) for token in doc if token.is_alpha])
-    transcriptions['refsoundex'] = ' '.join([refsoundex.phonetics(token.text) for token in doc if token.is_alpha])
-    transcriptions['metaphone'] = ' '.join([metaphone.phonetics(token.text) for token in doc if token.is_alpha])
+    transcriptions['soundex'] = ' '.join([soundex.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    transcriptions['refsoundex'] = ' '.join([refsoundex.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    transcriptions['metaphone'] = ' '.join([metaphone.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
 
     return transcriptions
