@@ -155,35 +155,36 @@ def transcribe_horizontal(verbatim):
 
     # Create miscellaneous transcriptions
     doc_no_apostrophe_split = nlp_no_apostrophe_split(verbatim.strip())
-    doc = nlp(verbatim.strip())
-    transcriptions['punct'] = ' '.join([token.text.lower()
-                                        for token in doc_no_apostrophe_split
-                                        if not token.is_punct])
-    transcriptions['punct_lemma'] = ' '.join([token.lemma_
-                                              for token in doc
-                                              if not token.is_punct])
-    transcriptions['punct_lemma_stop'] = ' '.join([token.lemma_
-                                                   for token in doc
-                                                   if (not token.is_stop
-                                                       and not token.is_punct)])
-
-    # Create IPA transcription
-    ipa_transcription = ''
-    phonemes = g2p_en(verbatim)
-    for symbol in phonemes:
-        if symbol in arpabet2ipa_no_stress.keys():
-            ipa_transcription += arpabet2ipa_no_stress[symbol]
-        elif symbol == ' ' and not ipa_transcription.endswith(' '):
-            ipa_transcription += symbol
-    transcriptions['ipa'] = ipa_transcription
-
-    # Create Sound Class transcriptions, reusing IPA transcriptions
-    for sound_class in {'cv', 'dolgo', 'asjp'}:
-        transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
-
-    # Create Soundex transcriptions
-    transcriptions['soundex'] = ' '.join([soundex.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
-    transcriptions['refsoundex'] = ' '.join([refsoundex.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
-    transcriptions['metaphone'] = ' '.join([metaphone.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    # doc = nlp(verbatim.strip())
+    transcriptions['punct'] = ' '.join([token.text for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    # transcriptions['punct'] = ' '.join([token.text.lower()
+    #                                     for token in doc_no_apostrophe_split
+    #                                     if not token.is_punct])
+    # transcriptions['punct_lemma'] = ' '.join([token.lemma_
+    #                                           for token in doc
+    #                                           if not token.is_punct])
+    # transcriptions['punct_lemma_stop'] = ' '.join([token.lemma_
+    #                                                for token in doc
+    #                                                if (not token.is_stop
+    #                                                    and not token.is_punct)])
+    #
+    # # Create IPA transcription
+    # ipa_transcription = ''
+    # phonemes = g2p_en(verbatim)
+    # for symbol in phonemes:
+    #     if symbol in arpabet2ipa_no_stress.keys():
+    #         ipa_transcription += arpabet2ipa_no_stress[symbol]
+    #     elif symbol == ' ' and not ipa_transcription.endswith(' '):
+    #         ipa_transcription += symbol
+    # transcriptions['ipa'] = ipa_transcription
+    #
+    # # Create Sound Class transcriptions, reusing IPA transcriptions
+    # for sound_class in {'cv', 'dolgo', 'asjp'}:
+    #     transcriptions[sound_class] = ipa2sc(phonemes, sound_class)
+    #
+    # # Create Soundex transcriptions
+    # transcriptions['soundex'] = ' '.join([soundex.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    # transcriptions['refsoundex'] = ' '.join([refsoundex.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    # transcriptions['metaphone'] = ' '.join([metaphone.phonetics(token.text) for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
 
     return transcriptions
