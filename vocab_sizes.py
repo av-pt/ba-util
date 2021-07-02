@@ -12,20 +12,60 @@ from glob import glob
 
 import matplotlib.pyplot as plt
 
-nlp = spacy.load('en_core_web_sm', exclude=['tok2vec', 'parser', 'ner'])
+nlp_no_apostrophe_split = spacy.load('en_core_web_sm', exclude=['parser', 'ner'])
+nlp_no_apostrophe_split.tokenizer.rules = {key: value for key, value in nlp_no_apostrophe_split.tokenizer.rules.items() if "'" not in key and "’" not in key and "‘" not in key}
+suffixes = [suffix for suffix in nlp_no_apostrophe_split.Defaults.suffixes if suffix not in ["'s", "'S", '’s', '’S']]
+suffix_regex = spacy.util.compile_suffix_regex(suffixes)
+nlp_no_apostrophe_split.tokenizer.suffix_search = suffix_regex.search
 
 
-def now(): return time.strftime("%Y-%m-%d_%H-%M-%S")
+def now(): return time.strftime('%Y-%m-%d_%H-%M-%S')
+
+
+labels = {
+    'verbatim': '$Verbatim$',
+    'ipa': '$IPA$',
+    'dolgo': '$Dolgo$',
+    'asjp': '$ASJP$',
+    'cv': '$CV$',
+    'soundex': '$Soundex$',
+    'refsoundex': '$RefSoundex$',
+    'metaphone': '$Metaphone$',
+    'punct': '$P$',
+    'punct_lemma': '$PL$',
+    'punct_lemma_stop': '$PLS$',
+}
 
 
 def plot(type_dto, name):
     # Math labels
-    # for key, value in type_dto.items():
-    #     type_dto[f'${key}$'] = type_dto.pop(key)
+    labeled_dto = {labels[key]: val for key, val in type_dto.items()}
+    verbatim_types = type_dto['verbatim']
 
+    plt.rcParams['mathtext.fontset'] = 'dejavuserif'
     plt.figure(figsize=(5, 3.5))
-    plt.bar(*zip(*sorted(type_dto.items(), key=lambda x: x[1], reverse=True)))
+    sorted_dto_list = sorted(labeled_dto.items(), key=lambda x: x[1], reverse=True)
+    plt.bar(*zip(*sorted_dto_list))
     plt.xticks(rotation='vertical')
+    plt.ylabel('Vocabulary size (types)')
+
+    # Add scaling factor to first bar
+    for i in range(0, len(sorted_dto_list)):
+        vssf = round(sorted_dto_list[i][1] / verbatim_types, 4)  # vocab size scaling factor
+        print(f'{sorted_dto_list[i][0]} & {vssf} ({sorted_dto_list[i][1]})')
+        if vssf < 1:
+            color = 'r'
+            vssf = f' {abs(vssf)}'
+        elif vssf > 1:
+            color = 'g'
+            vssf = f' {vssf}'
+        else:
+            color = 'k'
+        if sorted_dto_list[i][0] == '$Verbatim$':
+            continue
+        plt.text(i, sorted_dto_list[i][1], vssf, ha='center', rotation='vertical', color=color)
+
+
     plt.savefig(f'{name[:-5]}.svg', format='svg', bbox_inches='tight')
 
 
@@ -71,10 +111,15 @@ def main():
         with open(path_to_jsonl, 'r') as pan20_data_file:
             for pair_line in tqdm(pan20_data_file, desc='Pairs'):
                 text = ' '.join(json.loads(pair_line)['pair'])
-                doc = nlp(text)
-                types.update([token.text.lower()
-                              for token in doc
-                              if (not token.is_punct and not token.like_num)])
+                if dir_entry.name == 'verbatim':
+                    doc = nlp_no_apostrophe_split(text)
+                    types.update([token.text.lower()
+                                  for token in doc
+                                  if any(c.isalpha() for c in token.text)])
+                else:
+                    types.update([token.lower()
+                                  for token in text.split(' ')
+                                  if any(c.isalpha() for c in token)])
 
         print(f'Types: {len(types)}\n')
         type_dto[dir_entry.name] = len(types)
