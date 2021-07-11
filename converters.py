@@ -154,9 +154,9 @@ def transcribe_horizontal(verbatim):
     transcriptions = dict()
 
     # Create miscellaneous transcriptions
-    doc_no_apostrophe_split = nlp_no_apostrophe_split(verbatim.strip())
+    # doc_no_apostrophe_split = nlp_no_apostrophe_split(verbatim.strip())
     # doc = nlp(verbatim.strip())
-    transcriptions['punct'] = ' '.join([token.text for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
+    # transcriptions['punct'] = ' '.join([token.text for token in doc_no_apostrophe_split if any(c.isalpha() for c in token.text)])
     # transcriptions['punct'] = ' '.join([token.text.lower()
     #                                     for token in doc_no_apostrophe_split
     #                                     if not token.is_punct])
@@ -167,16 +167,16 @@ def transcribe_horizontal(verbatim):
     #                                                for token in doc
     #                                                if (not token.is_stop
     #                                                    and not token.is_punct)])
-    #
-    # # Create IPA transcription
-    # ipa_transcription = ''
-    # phonemes = g2p_en(verbatim)
-    # for symbol in phonemes:
-    #     if symbol in arpabet2ipa_no_stress.keys():
-    #         ipa_transcription += arpabet2ipa_no_stress[symbol]
-    #     elif symbol == ' ' and not ipa_transcription.endswith(' '):
-    #         ipa_transcription += symbol
-    # transcriptions['ipa'] = ipa_transcription
+
+    # Create IPA transcription
+    ipa_transcription = ''
+    phonemes = g2p_en(verbatim)
+    for symbol in phonemes:
+        if symbol in arpabet2ipa_no_stress.keys():
+            ipa_transcription += arpabet2ipa_no_stress[symbol]
+        elif symbol == ' ' and not ipa_transcription.endswith(' '):
+            ipa_transcription += symbol
+    transcriptions['ipa'] = ipa_transcription
     #
     # # Create Sound Class transcriptions, reusing IPA transcriptions
     # for sound_class in {'cv', 'dolgo', 'asjp'}:

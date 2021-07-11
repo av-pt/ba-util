@@ -28,16 +28,30 @@ from adjustText import adjust_text
 manual_order = [
     'verbatim',
     'ipa',
-    'asjp',
     'dolgo',
+    'asjp',
     'cv',
     'soundex',
     'refsoundex',
+    'metaphone',
     'punct',
-    'lemma',
-    'lemma_punct',
-    'lemma_punct_stop'
+    'punct_lemma',
+    'punct_lemma_stop'
 ]
+
+system_to_label = {
+    'verbatim': '$Verbatim$',
+    'ipa': '$IPA$',
+    'dolgo': '$Dolgo$',
+    'asjp': '$ASJP$',
+    'cv': '$CV$',
+    'soundex': '$Soundex$',
+    'refsoundex': '$RefSoundex$',
+    'metaphone': '$Metaphone$',
+    'punct': '$P$',
+    'punct_lemma': '$PL$',
+    'punct_lemma_stop': '$PLS$',
+}
 
 measure_to_label = {
     'accuracy': 'Accuracy',
@@ -110,7 +124,10 @@ def main():
                         help='File with vocab sizes')
     args = parser.parse_args()
 
-    out_path = os.path.join('data', f'plot_{now()}_{args.output}')
+    if args.vocab_sizes is None:
+        out_path = os.path.join('data', f'plot_{now()}_{args.output}_bar')
+    else:
+        out_path = os.path.join('data', f'plot_{now()}_{args.output}_sct')
     os.makedirs(out_path, exist_ok=True)
 
     # Load data (Unmasking)
@@ -120,15 +137,18 @@ def main():
     else:  # Load data (other)
         results = load_teahan03_results(args.input)
 
-    df = pd.DataFrame(data=results, columns=manual_order).T  # Transposed
+    df = pd.DataFrame(data=results, columns=manual_order)  # Transposed
+    df.rename(columns=system_to_label, inplace=True)
+    df = df.T
     print(df)
 
     if args.vocab_sizes is None:
         for measure, values in df.iteritems():
+            plt.rcParams['mathtext.fontset'] = 'dejavuserif'
             plt.figure(figsize=(5, 3.5))
             values.plot.bar()
             plt.ylim(0, 1)
-            plt.title(measure_to_label[measure])
+            plt.ylabel(measure_to_label[measure])
             plt.grid(axis='y')
 
             # Add differences to first bar
@@ -151,6 +171,7 @@ def main():
             type_dto = json.load(f)
         for measure, values in df.iteritems():
 
+            plt.rcParams['mathtext.fontset'] = 'dejavuserif'
             plt.figure(figsize=(5, 3.5))
             x_values = []
             y_values = []
@@ -164,7 +185,7 @@ def main():
 
             plt.ylim(0, 1)
             plt.title(f'{measure_to_label[measure]} vs. vocabulary size')
-            plt.xlabel('Vocabulary size')
+            plt.xlabel('Vocabulary size (types)')
             plt.ylabel(measure_to_label[measure])
             plt.grid()
             plt.scatter(x_values, y_values)  # s=5 -> size

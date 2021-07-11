@@ -14,7 +14,8 @@ from collections import Counter, OrderedDict
 import matplotlib.pyplot as plt
 
 nlp_no_apostrophe_split = spacy.load('en_core_web_sm', exclude=['parser', 'ner'])
-nlp_no_apostrophe_split.tokenizer.rules = {key: value for key, value in nlp_no_apostrophe_split.tokenizer.rules.items() if "'" not in key and "’" not in key and "‘" not in key}
+nlp_no_apostrophe_split.tokenizer.rules = {key: value for key, value in nlp_no_apostrophe_split.tokenizer.rules.items()
+                                           if "'" not in key and "’" not in key and "‘" not in key}
 suffixes = [suffix for suffix in nlp_no_apostrophe_split.Defaults.suffixes if suffix not in ["'s", "'S", '’s', '’S']]
 suffix_regex = spacy.util.compile_suffix_regex(suffixes)
 nlp_no_apostrophe_split.tokenizer.suffix_search = suffix_regex.search
@@ -62,16 +63,19 @@ def plot(type_dto, name):
             vssf = f' {vssf}'
         else:
             color = 'k'
+            vssf = f' {vssf}'
         if sorted_dto_list[i][0] == '$Verbatim$':
             continue
         plt.text(i, sorted_dto_list[i][1], vssf, ha='center', rotation='vertical', color=color)
 
-
     plt.savefig(f'{name[:-5]}.svg', format='svg', bbox_inches='tight')
+
 
 def vocab_size(directory, output_filename):
     type_dto = dict()
     for dir_entry in directory:
+        # if dir_entry.name not in ['verbatim', 'punct']:
+        #     continue
         paths = glob(os.path.join(dir_entry.path, '*.jsonl'))
         path_to_jsonl = [x for x in paths if not x.endswith('-truth.jsonl')][0]
         print(f'Counting types for {dir_entry.name}')
@@ -91,9 +95,14 @@ def vocab_size(directory, output_filename):
 
         print(f'Types: {len(types)}\n')
         type_dto[dir_entry.name] = len(types)
+        # if dir_entry.name == 'verbatim':
+        #     verbatim_types = types.copy()
+        # if dir_entry.name == 'punct':
+        #     punct_types = types.copy()
 
         with open(os.path.join('data', output_filename), 'w') as f:
             json.dump(type_dto, f)
+    # print(verbatim_types.difference(punct_types))
 
 
 def count_characters(directory, output_filename):
@@ -110,8 +119,33 @@ def count_characters(directory, output_filename):
         char_dto[dir_entry.name] = OrderedDict(c.most_common())
         c.clear()
 
-    with open(os.path.join('data', output_filename), 'w') as f:
-        json.dump(char_dto, f)
+        with open(os.path.join('data', output_filename), 'w') as f:
+            json.dump(char_dto, f)
+
+
+gb_alphabet = ["e", "t", "a", "o", "n", "i", "h", "s", "r", "d", "l", "u", "c", "m", "w", "f", "g", "y", "p", ",", ".", "b", "\"",
+     "k", "v", "I", "-", "'", "T", "H", "A", "S", "W", "M", "?", "x", "B", "!", "C", ";", "j", "q", "N", "D", "z", "P",
+     "Y", "G", "O", "L", "E", "F", "R", "J", "K", ":", "V", "U", "0", "1", "(", ")", "Q", "2", "Z", "3", "5", "8", "9",
+     "4", "6", "7", "X", "&", "$", "]", "[", "/", "{", "}", "@", "%", "\n", "\ufeff", "=", "*", "+", "^", "\\"]
+
+# Coding:
+# How many types have characters not in gb_alphabet?
+# How many pairs have types that have chars not in gb_alphabet?
+# Then: What happens if we remove entire texts? Is this feasible? Depends on amount that is discarded.
+# Also: What happens if we remove certain types, or even just certain characters?
+
+# Decisions:
+# Clean " in I"m -> Print all words with ", find out which are actually ok ("word") and which aren't (I"m)
+# Clean other words / characters? No clue.
+
+# Write:
+# Either: This is the way it is, we kinda know why but won't change much.
+# Or: Change things first, then re-evaluate.
+# Anyways: Description of GB should be set.
+
+def words_not_in_alphabet(directory, output_filename):
+    pass
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -149,8 +183,7 @@ def main():
     if args.output is None:
         output_filename = f'{output_filename}_{now()}.json'
     else:
-        output_filename = f'{output_filename}vocab_sizes_{now()}_{args.output}.json'
-
+        output_filename = f'{output_filename}_{now()}_{args.output}.json'
 
     os.makedirs('data', exist_ok=True)
 
@@ -159,7 +192,6 @@ def main():
         sys.exit(0)
     vocab_size(directory, output_filename)
     # Go through PAN20 data files and add tokens to set
-
 
 
 if __name__ == '__main__':
