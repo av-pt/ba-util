@@ -105,7 +105,7 @@ def vocab_size(directory, output_filename):
     # print(verbatim_types.difference(punct_types))
 
 
-def count_characters(directory, output_filename):
+def count_characters(directory, output_filename, count_doc_freq=False):
     char_dto = dict()
     c = Counter()
     for dir_entry in directory:
@@ -115,7 +115,10 @@ def count_characters(directory, output_filename):
         with open(path_to_jsonl, 'r') as pan20_data_file:
             for pair_line in tqdm(pan20_data_file, desc='Pairs'):
                 text = ''.join(json.loads(pair_line)['pair'])
-                c.update(text)
+                if count_doc_freq:
+                    c.update(set(text))
+                else:
+                    c.update(text)
         char_dto[dir_entry.name] = OrderedDict(c.most_common())
         c.clear()
 
@@ -123,12 +126,19 @@ def count_characters(directory, output_filename):
             json.dump(char_dto, f)
 
 
-gb_alphabet = ["e", "t", "a", "o", "n", "i", "h", "s", "r", "d", "l", "u", "c", "m", "w", "f", "g", "y", "p", ",", ".", "b", "\"",
-     "k", "v", "I", "-", "'", "T", "H", "A", "S", "W", "M", "?", "x", "B", "!", "C", ";", "j", "q", "N", "D", "z", "P",
-     "Y", "G", "O", "L", "E", "F", "R", "J", "K", ":", "V", "U", "0", "1", "(", ")", "Q", "2", "Z", "3", "5", "8", "9",
-     "4", "6", "7", "X", "&", "$", "]", "[", "/", "{", "}", "@", "%", "\n", "\ufeff", "=", "*", "+", "^", "\\"]
+# gb_alphabet = ["e", "t", "a", "o", "n", "i", "h", "s", "r", "d", "l", "u", "c", "m", "w", "f", "g", "y", "p", ",", ".", "b", "\"",
+#      "k", "v", "I", "-", "'", "T", "H", "A", "S", "W", "M", "?", "x", "B", "!", "C", ";", "j", "q", "N", "D", "z", "P",
+#      "Y", "G", "O", "L", "E", "F", "R", "J", "K", ":", "V", "U", "0", "1", "(", ")", "Q", "2", "Z", "3", "5", "8", "9",
+#      "4", "6", "7", "X", "&", "$", "]", "[", "/", "{", "}", "@", "%", "\n", "\ufeff", "=", "*", "+", "^", "\\"]
+#
+#
+# with open('data/char_frequenciesvocab_sizes_2021-07-07_18-44-25_ff_proper.json', 'r') as f:
+#     ff_char_freqs = json.load(f)
+# ff_alphabet = list(ff_char_freqs['verbatim'].keys())
+# print(ff_alphabet[:10])
 
 # Coding:
+# Document frequencies for characters
 # How many types have characters not in gb_alphabet?
 # How many pairs have types that have chars not in gb_alphabet?
 # Then: What happens if we remove entire texts? Is this feasible? Depends on amount that is discarded.
@@ -142,9 +152,6 @@ gb_alphabet = ["e", "t", "a", "o", "n", "i", "h", "s", "r", "d", "l", "u", "c", 
 # Either: This is the way it is, we kinda know why but won't change much.
 # Or: Change things first, then re-evaluate.
 # Anyways: Description of GB should be set.
-
-def words_not_in_alphabet(directory, output_filename):
-    pass
 
 
 def main():
@@ -165,6 +172,10 @@ def main():
                         '-c',
                         help='Count character frequencies',
                         action='store_true')
+    parser.add_argument('--docfreq',
+                        '-d',
+                        help='Count character document frequencies',
+                        action='store_true')
     args = parser.parse_args()
 
     if args.plot is not None:
@@ -177,6 +188,8 @@ def main():
     print(f'Found {len(directory)} unmasking results.')
     if args.characters:
         output_filename = 'char_frequencies'
+    elif args.docfreq:
+        output_filename = 'char_doc_freq'
     else:
         output_filename = 'vocab_sizes'
 
@@ -189,6 +202,9 @@ def main():
 
     if args.characters:
         count_characters(directory, output_filename)
+        sys.exit(0)
+    if args.docfreq:
+        count_characters(directory, output_filename, True)
         sys.exit(0)
     vocab_size(directory, output_filename)
     # Go through PAN20 data files and add tokens to set
