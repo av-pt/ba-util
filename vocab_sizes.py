@@ -110,6 +110,8 @@ def count_characters(directory, output_filename, count_doc_freq=False):
     c = Counter()
     dataset_character_length = 0
     for dir_entry in directory:
+        if dir_entry.name not in ['verbatim']:
+            continue
         paths = glob(os.path.join(dir_entry.path, '*.jsonl'))
         path_to_jsonl = [x for x in paths if not x.endswith('-truth.jsonl')][0]
         print(f'Counting characters for {dir_entry.name}')
@@ -127,7 +129,7 @@ def count_characters(directory, output_filename, count_doc_freq=False):
 
         # with open(os.path.join('data', output_filename), 'w') as f:
         #     json.dump(char_dto, f)
-    print(dataset_character_length)
+        print(dataset_character_length)
 
 
 # gb_alphabet = ["e", "t", "a", "o", "n", "i", "h", "s", "r", "d", "l", "u", "c", "m", "w", "f", "g", "y", "p", ",", ".", "b", "\"",
