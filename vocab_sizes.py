@@ -73,9 +73,15 @@ def plot(type_dto, name):
 
 def vocab_size(directory, output_filename):
     type_dto = dict()
+    timestamp = now()
+
+    # Aux lists for Verbatim and IPA analysis
+    # Holds cumulative vocab sizes as the algorithm goes through the data
+    verbatim_cum_vocab_size = [0]
+    ipa_cum_vocab_size = [0]
     for dir_entry in directory:
-        # if dir_entry.name not in ['verbatim', 'punct']:
-        #     continue
+        if dir_entry.name not in ['verbatim', 'ipa']:
+            continue
         paths = glob(os.path.join(dir_entry.path, '*.jsonl'))
         path_to_jsonl = [x for x in paths if not x.endswith('-truth.jsonl')][0]
         print(f'Counting types for {dir_entry.name}')
@@ -92,6 +98,10 @@ def vocab_size(directory, output_filename):
                     types.update([token.lower()
                                   for token in text.split(' ')
                                   if any(c.isalpha() for c in token)])
+                if dir_entry.name == 'verbatim':
+                    verbatim_cum_vocab_size.append(len(types))
+                if dir_entry.name == 'ipa':
+                    ipa_cum_vocab_size.append(len(types))
 
         print(f'Types: {len(types)}\n')
         type_dto[dir_entry.name] = len(types)
@@ -100,15 +110,31 @@ def vocab_size(directory, output_filename):
         # if dir_entry.name == 'punct':
         #     punct_types = types.copy()
 
-        with open(os.path.join('data', output_filename), 'w') as f:
-            json.dump(type_dto, f)
+        # with open(os.path.join('data', output_filename), 'w') as f:
+        #     json.dump(type_dto, f)
+
+    with open(os.path.join('data', f'verbatim_cum_vocab_size_{timestamp}.json'), 'w') as f:
+        temp = dict()
+        temp['data'] = verbatim_cum_vocab_size
+        json.dump(temp, f)
+    with open(os.path.join('data', f'ipa_cum_vocab_size_{timestamp}.json'), 'w') as f:
+        temp = dict()
+        temp['data'] = ipa_cum_vocab_size
+        json.dump(temp, f)
+
     # print(verbatim_types.difference(punct_types))
 
+with open('data/char_doc_freq_2021-07-12_15-49-40_ff.json', 'r') as f:
+    ff_doc_freqs = json.load(f)
+valid_chars = [char for char, count in ff_doc_freqs['verbatim'].items() if all(ord(x) < 128 for x in char)]#count >= 1250]
 
+# Count char frequencies and char document frequencies
 def count_characters(directory, output_filename, count_doc_freq=False):
     char_dto = dict()
     c = Counter()
     dataset_character_length = 0
+    valid_texts = 0
+    valid_char_count = 0
     for dir_entry in directory:
         if dir_entry.name not in ['verbatim']:
             continue
@@ -118,18 +144,28 @@ def count_characters(directory, output_filename, count_doc_freq=False):
         with open(path_to_jsonl, 'r') as pan20_data_file:
             for pair_line in tqdm(pan20_data_file, desc='Pairs'):
                 text = ''.join(json.loads(pair_line)['pair'])
-                if count_doc_freq:
-                    c.update(set(text))
-                else:
-                    c.update(text)
+                # if count_doc_freq:
+                #     c.update(set(text))
+                # else:
+                #     c.update(text)
                 dataset_character_length += len(text)
+                v = [char in valid_chars for char in text]
+                valid_char_count += sum(v)
+
+                if all(v):
+                    valid_texts += 1
+                    # print(valid_texts)
+                #print(valid_char_count)
+
 
         char_dto[dir_entry.name] = OrderedDict(c.most_common())
         c.clear()
 
         # with open(os.path.join('data', output_filename), 'w') as f:
         #     json.dump(char_dto, f)
-        print(dataset_character_length)
+        print(f'Pairs of only ASCII chars: {valid_texts}')
+        # print(dataset_character_length)
+        print(f'Avg. ratio ascii to non-ascii chars: {valid_char_count / dataset_character_length}')
 
 
 # gb_alphabet = ["e", "t", "a", "o", "n", "i", "h", "s", "r", "d", "l", "u", "c", "m", "w", "f", "g", "y", "p", ",", ".", "b", "\"",
