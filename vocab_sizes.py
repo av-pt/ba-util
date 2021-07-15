@@ -124,12 +124,13 @@ def vocab_size(directory, output_filename):
 
     # print(verbatim_types.difference(punct_types))
 
-with open('data/char_doc_freq_2021-07-12_15-49-40_ff.json', 'r') as f:
-    ff_doc_freqs = json.load(f)
-valid_chars = [char for char, count in ff_doc_freqs['verbatim'].items() if all(ord(x) < 128 for x in char)]#count >= 1250]
-
 # Count char frequencies and char document frequencies
 def count_characters(directory, output_filename, count_doc_freq=False):
+    with open('data/char_doc_freq_2021-07-12_15-49-40_ff.json', 'r') as f:
+        ff_doc_freqs = json.load(f)
+    valid_chars = [char for char, count in ff_doc_freqs['verbatim'].items() if
+                   all(ord(x) < 128 for x in char)]  # count >= 1250]
+
     char_dto = dict()
     c = Counter()
     dataset_character_length = 0
