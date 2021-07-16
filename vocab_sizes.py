@@ -74,11 +74,13 @@ def plot(type_dto, name):
 def vocab_size(directory, output_filename):
     type_dto = dict()
     timestamp = now()
+    verbatim_dto = dict()
+    ipa_dto = dict()
 
     # Aux lists for Verbatim and IPA analysis
     # Holds cumulative vocab sizes as the algorithm goes through the data
-    verbatim_cum_vocab_size = [0]
-    ipa_cum_vocab_size = [0]
+    verbatim_vocab_list = []
+    ipa_vocab_list = []
     for dir_entry in directory:
         if dir_entry.name not in ['verbatim', 'ipa']:
             continue
@@ -89,19 +91,22 @@ def vocab_size(directory, output_filename):
         with open(path_to_jsonl, 'r') as pan20_data_file:
             for pair_line in tqdm(pan20_data_file, desc='Pairs'):
                 text = ' '.join(json.loads(pair_line)['pair'])
+                newtypes = None
                 if dir_entry.name == 'verbatim':
                     doc = nlp_no_apostrophe_split(text)
-                    types.update([token.text.lower()
-                                  for token in doc
-                                  if any(c.isalpha() for c in token.text)])
+                    newtypes = [token.text.lower()
+                                for token in doc
+                                if any(c.isalpha() for c in token.text)]
+                    types.update(newtypes)
                 else:
-                    types.update([token.lower()
-                                  for token in text.split(' ')
-                                  if any(c.isalpha() for c in token)])
+                    newtypes = [token.lower()
+                                for token in text.split(' ')
+                                if any(c.isalpha() for c in token)]
+                    types.update(newtypes)
                 if dir_entry.name == 'verbatim':
-                    verbatim_cum_vocab_size.append(len(types))
+                    verbatim_vocab_list.append(newtypes)
                 if dir_entry.name == 'ipa':
-                    ipa_cum_vocab_size.append(len(types))
+                    ipa_vocab_list.append(newtypes)
 
         print(f'Types: {len(types)}\n')
         type_dto[dir_entry.name] = len(types)
@@ -113,16 +118,17 @@ def vocab_size(directory, output_filename):
         # with open(os.path.join('data', output_filename), 'w') as f:
         #     json.dump(type_dto, f)
 
-    with open(os.path.join('data', f'verbatim_cum_vocab_size_{timestamp}.json'), 'w') as f:
-        temp = dict()
-        temp['data'] = verbatim_cum_vocab_size
-        json.dump(temp, f)
-    with open(os.path.join('data', f'ipa_cum_vocab_size_{timestamp}.json'), 'w') as f:
-        temp = dict()
-        temp['data'] = ipa_cum_vocab_size
-        json.dump(temp, f)
+        if dir_entry.name == 'verbatim':
+            with open(os.path.join('data', f'vocab_list_verbatim_{timestamp}.json'), 'w') as f:
+                verbatim_dto['data'] = verbatim_vocab_list
+                json.dump(verbatim_dto, f)
+        if dir_entry.name == 'ipa':
+            with open(os.path.join('data', f'vocab_list_ipa_{timestamp}.json'), 'w') as f:
+                ipa_dto['data'] = ipa_vocab_list
+                json.dump(ipa_dto, f)
 
     # print(verbatim_types.difference(punct_types))
+
 
 # Count char frequencies and char document frequencies
 def count_characters(directory, output_filename, count_doc_freq=False):
@@ -156,8 +162,7 @@ def count_characters(directory, output_filename, count_doc_freq=False):
                 if all(v):
                     valid_texts += 1
                     # print(valid_texts)
-                #print(valid_char_count)
-
+                # print(valid_char_count)
 
         char_dto[dir_entry.name] = OrderedDict(c.most_common())
         c.clear()
