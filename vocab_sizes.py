@@ -82,7 +82,7 @@ def vocab_size(directory, output_filename):
     verbatim_vocab_list = []
     ipa_vocab_list = []
     for dir_entry in directory:
-        if dir_entry.name not in ['verbatim', 'ipa']:
+        if dir_entry.name not in ['verbatim']:#, 'ipa']:
             continue
         paths = glob(os.path.join(dir_entry.path, '*.jsonl'))
         path_to_jsonl = [x for x in paths if not x.endswith('-truth.jsonl')][0]
