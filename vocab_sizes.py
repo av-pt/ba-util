@@ -94,14 +94,14 @@ def vocab_size(directory, output_filename):
                 newtypes = None
                 if dir_entry.name == 'verbatim':
                     doc = nlp_no_apostrophe_split(text)
-                    newtypes = [token.text.lower()
+                    newtypes = list(set([token.text.lower()
                                 for token in doc
-                                if any(c.isalpha() for c in token.text)]
+                                if any(c.isalpha() for c in token.text)]))
                     types.update(newtypes)
                 else:
-                    newtypes = [token.lower()
+                    newtypes = list(set([token.lower()
                                 for token in text.split(' ')
-                                if any(c.isalpha() for c in token)]
+                                if any(c.isalpha() for c in token)]))
                     types.update(newtypes)
                 if dir_entry.name == 'verbatim':
                     verbatim_vocab_list.append(newtypes)
