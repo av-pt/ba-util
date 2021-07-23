@@ -8,6 +8,7 @@ import shutil
 
 from tqdm import tqdm
 
+from clean_ff import clean, replace_special
 from converters import transcribe_horizontal
 
 """
@@ -35,6 +36,7 @@ def main():
     parser.add_argument('-o', '--output', type=str, default='', help='Name for an output folder')
     parser.add_argument('-s', '--separate_folders', action='store_true',
                         help='Create separate folders for output files, each containing a copy of the truth file')
+    parser.add_argument('-c', '--clean', action='store_true', help='Additional cleaning for the PAN20 Fan-fiction dataset')
     args = parser.parse_args()
     if not args.input:
         print('ERROR: The input file is required')
@@ -72,9 +74,16 @@ def main():
     for entity in tqdm(orig_entities):
         copy = entity.copy()
 
+        first = entity['pair'][0]
+        second = entity['pair'][1]
+
+        if args.clean:
+            first = replace_special(first)
+            second = replace_special(second)
+
         try:
-            first_transcriptions = transcribe_horizontal(entity['pair'][0])
-            second_transcriptions = transcribe_horizontal(entity['pair'][1])
+            first_transcriptions = transcribe_horizontal(first)
+            second_transcriptions = transcribe_horizontal(second)
         except Exception as e:
             print(f"Sample ID: {entity['id']}")
             logging.error(traceback.format_exc())
@@ -87,10 +96,10 @@ def main():
             else:
                 persist_jsonl(os.path.join(output_folder, f'{system}_{os.path.basename(args.input)}'), copy)
 
-        if args.separate_folders:
-            persist_jsonl(os.path.join(output_folder, 'verbatim', f'verbatim_{os.path.basename(args.input)}'), entity)
-        else:
-            persist_jsonl(os.path.join(output_folder, f'verbatim_{os.path.basename(args.input)}'), entity)
+        # if args.separate_folders:
+        #     persist_jsonl(os.path.join(output_folder, 'verbatim', f'verbatim_{os.path.basename(args.input)}'), entity)
+        # else:
+        #     persist_jsonl(os.path.join(output_folder, f'verbatim_{os.path.basename(args.input)}'), entity)
 
 
 if __name__ == '__main__':
