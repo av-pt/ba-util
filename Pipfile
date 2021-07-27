@@ -16,6 +16,8 @@ pyclts = "*"
 pyphonetics = "*"
 ujson = "*"
 adjusttext = "*"
+aspell-python-py3 = "*"
+sklearn = "*"
 
 [dev-packages]
 
