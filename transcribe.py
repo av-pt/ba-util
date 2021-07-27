@@ -9,7 +9,7 @@ import shutil
 from tqdm import tqdm
 
 from clean_ff import clean, replace_special
-from converters import transcribe_horizontal
+from converters import transcribe_horizontal_gb, transcribe_horizontal_ff
 
 """
 python transcribe.py -i ../unmasking/NAACL-19/corpus/pan20/gb.jsonl -o ../unmasking/NAACL-19/corpus/pan20/transcribed -t ../unmasking/NAACL-19/corpus/pan20/gb-truth.jsonl -s
@@ -36,7 +36,7 @@ def main():
     parser.add_argument('-o', '--output', type=str, default='', help='Name for an output folder')
     parser.add_argument('-s', '--separate_folders', action='store_true',
                         help='Create separate folders for output files, each containing a copy of the truth file')
-    parser.add_argument('-c', '--clean', action='store_true', help='Additional cleaning for the PAN20 Fan-fiction dataset')
+    parser.add_argument('-d', '--dataset', help='gb = Gutenberg (additional n-gram generation), ff = Fan-fiction (additional cleaning', choices=('gb', 'ff'), required=True)
     args = parser.parse_args()
     if not args.input:
         print('ERROR: The input file is required')
@@ -51,7 +51,10 @@ def main():
 
     # Input: PAN20 file (relative path given)
     # Output: Transcribed PAN20 files in data/transcribed/
-    transcription_systems = transcribe_horizontal('').keys()
+    if args.dataset == 'gb':
+        transcription_systems = transcribe_horizontal_gb('').keys()
+    else:
+        transcription_systems = transcribe_horizontal_ff('').keys()
     print(f'Transcribing to {len(transcription_systems)} systems:')
     print(transcription_systems)
 
@@ -77,13 +80,15 @@ def main():
         first = entity['pair'][0]
         second = entity['pair'][1]
 
-        if args.clean:
-            first = replace_special(first)
-            second = replace_special(second)
-
         try:
-            first_transcriptions = transcribe_horizontal(first)
-            second_transcriptions = transcribe_horizontal(second)
+            if args.dataset == 'ff':
+                first = replace_special(first)
+                second = replace_special(second)
+                first_transcriptions = transcribe_horizontal_ff(first)
+                second_transcriptions = transcribe_horizontal_ff(second)
+            else:
+                first_transcriptions = transcribe_horizontal_gb(first)
+                second_transcriptions = transcribe_horizontal_gb(second)
         except Exception as e:
             print(f"Sample ID: {entity['id']}")
             logging.error(traceback.format_exc())
@@ -96,10 +101,11 @@ def main():
             else:
                 persist_jsonl(os.path.join(output_folder, f'{system}_{os.path.basename(args.input)}'), copy)
 
-        # if args.separate_folders:
-        #     persist_jsonl(os.path.join(output_folder, 'verbatim', f'verbatim_{os.path.basename(args.input)}'), entity)
-        # else:
-        #     persist_jsonl(os.path.join(output_folder, f'verbatim_{os.path.basename(args.input)}'), entity)
+        if args.dataset == 'ff':
+            if args.separate_folders:
+                persist_jsonl(os.path.join(output_folder, 'verbatim', f'verbatim_{os.path.basename(args.input)}'), entity)
+            else:
+                persist_jsonl(os.path.join(output_folder, f'verbatim_{os.path.basename(args.input)}'), entity)
 
 
 if __name__ == '__main__':
