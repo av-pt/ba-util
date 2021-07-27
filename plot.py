@@ -24,7 +24,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from adjustText import adjust_text
 
-
 manual_order = [
     'verbatim',
     'ipa',
@@ -36,7 +35,11 @@ manual_order = [
     'metaphone',
     'punct',
     'punct_lemma',
-    'punct_lemma_stop'
+    'punct_lemma_stop',
+    'ipa_4grams',
+    'dolgo_4grams',
+    'asjp_4grams',
+    'cv_4grams'
 ]
 
 system_to_label = {
@@ -51,6 +54,10 @@ system_to_label = {
     'punct': '$P$',
     'punct_lemma': '$PL$',
     'punct_lemma_stop': '$PLS$',
+    'ipa_4grams': '$IPA$ $4$-$grams$',
+    'dolgo_4grams': '$Dolgo$ $4$-$grams$',
+    'asjp_4grams': '$ASJP$ $4$-$grams$',
+    'cv_4grams': '$CV$ $4$-$grams$'
 }
 
 measure_to_label = {
@@ -153,7 +160,7 @@ def main():
 
             # Add differences to first bar
             for i in range(1, len(values)):
-                diff = round(values[i]-values[0], 4)
+                diff = round(values[i] - values[0], 4)
                 if diff < 0:
                     color = 'r'
                     diff = f' -{abs(diff)}'
@@ -165,6 +172,7 @@ def main():
                 plt.text(i, values[i], diff, ha='center', rotation='vertical', color=color)
 
             plt.savefig(os.path.join(out_path, f'{measure}.svg'), format='svg', bbox_inches='tight')
+            plt.savefig(os.path.join(out_path, f'{measure}.eps'), format='eps', bbox_inches='tight')
             plt.clf()
     else:
         with open(args.vocab_sizes, 'r') as f:
@@ -193,7 +201,8 @@ def main():
             m, b = np.polyfit(x_values, y_values, 1)
             p = np.poly1d([m, b])
             plt.plot(x_values, p(x_values), 'k', linewidth=1)
-            steps = adjust_text(texts, force_points=1, autoalign='y', arrowprops=dict(arrowstyle='->', color='black', lw=0.5))
+            steps = adjust_text(texts, force_points=1, autoalign='y',
+                                arrowprops=dict(arrowstyle='->', color='black', lw=0.5))
             print(f'Label placement iterations for {measure}: {steps}')
 
             plt.savefig(os.path.join(out_path, f'{measure}.svg'), format='svg', bbox_inches='tight')
