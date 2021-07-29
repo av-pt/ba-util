@@ -3,7 +3,9 @@ Playground for various dataset visualizations.
 """
 
 import json
+import os
 import string
+import sys
 from collections import Counter
 import random
 import time
@@ -16,6 +18,27 @@ import aspell
 
 
 def now(): return time.strftime('%Y-%m-%d_%H-%M-%S')
+
+
+labels = {
+    'verbatim': '$Verbatim$',
+    'ipa': '$IPA$',
+    'dolgo': '$Dolgo$',
+    'asjp': '$ASJP$',
+    'cv': '$CV$',
+    'soundex': '$Soundex$',
+    'refsoundex': '$RefSoundex$',
+    'metaphone': '$Metaphone$',
+    'punct': '$P$',
+    'punct_lemma': '$PL$',
+    'punct_lemma_stop': '$PLS$',
+    'ipa_4grams': '$IPA$ $4$-$grams$',
+    'dolgo_4grams': '$Dolgo$ $4$-$grams$',
+    'asjp_4grams': '$ASJP$ $4$-$grams$',
+    'cv_4grams': '$CV$ $4$-$grams$',
+    'punct_4grams': '$P$ $4$-$grams$',
+    'verbatimoriginal': '$Verbatim$ $(orig.)$',
+}
 
 
 # with open('data/char_frequenciesvocab_sizes_2021-07-07_18-44-25_ff_proper.json', 'r') as f:
@@ -59,10 +82,30 @@ def plot_vocab_lists():
 
     # FF indices
     # There are 27834 same-author pairs and 24767 different-author pairs
-    indices = [x for x in range(52583)]
-    vertical_line_value = 24767
-    indices.reverse()
-    #random.shuffle(indices)
+    # With long and short texts removed: 27178 same-author, 23771 diff-author, 50949 total
+    indices = [x for x in range(50949)]
+
+    order = 'inorder'
+    # order = 'inreverseorder'
+    # order = 'shuffled'
+    # order = 'inorder_onlysame'
+    # order = 'inorder_onlydiff'
+
+    if order == 'inorder':
+        vertical_line_value = 27178
+        text_left = 'same author'
+        text_right = 'diff. author'
+    elif order == 'inreverseorder':
+        indices.reverse()
+        vertical_line_value = 23771
+        text_left = 'diff. author'
+        text_right = 'same author'
+    elif order == 'shuffled':
+        random.shuffle(indices)
+    elif order == 'inorder_onlysame':
+        indices = indices[:27178]
+    elif order == 'inorder_onlydiff':
+        indices = indices[-23771:]
 
     # GB indices in order (first: same, last: different)
     # indices_same = []
@@ -77,44 +120,36 @@ def plot_vocab_lists():
     # indices = indices_diff + indices_same
     # print(indices)
 
-
-    verbatim_types = set()
-    ipa_types = set()
-    cum_vocab_sizes_verbatim = [0]
-    cum_vocab_sizes_ipa = [0]
-
-    print('Loading Verbatim data...')
-    # with open('data/vocab_list_verbatim_ff_splitpairs_2021-07-18_19-44-21.json', 'r') as f:
-    # with open('data/vocab_list_verbatim_gb_2021-07-16_17-58-49.json', 'r') as f:
-    # with open('data/vocab_list_verbatim_ff_2021-07-16_18-15-43.json', 'r') as f:
-    with open('data/vocab_list_verbatim_ff_proper_2021-07-20_17-46-00', 'r') as f:
-        vocab_list_verbatim = json.load(f)['data']#[:1000]
-        for i in tqdm(indices):
-            verbatim_types.update(vocab_list_verbatim[i])
-            cum_vocab_sizes_verbatim.append(len(verbatim_types))
-        vocab_list_verbatim = None
-    print('Loading IPA data...')
-    # with open('data/vocab_list_ipa_gb_2021-07-16_17-58-49.json', 'r') as f:
-    # with open('data/vocab_list_ipa_ff_2021-07-16_18-07-11.json', 'r') as f:
-    with open('data/vocab_list_verbatim_ff_improper_2021-07-20_17-46-00', 'r') as f:
-        vocab_list_ipa = json.load(f)['data']#[:1000]
-        for i in tqdm(indices):
-            ipa_types.update(vocab_list_ipa[i])
-            cum_vocab_sizes_ipa.append(len(ipa_types))
-        vocab_list_ipa = None
-
-
-
     plt.rcParams['mathtext.fontset'] = 'dejavuserif'
     plt.figure(figsize=(5, 3.5))
-    plt.plot(cum_vocab_sizes_verbatim, label='$Verbatim$ (proper words)')
-    # plt.plot(cum_vocab_sizes_ipa, label='$IPA$')
-    plt.plot(cum_vocab_sizes_ipa, label='$Verbatim$ (improper words)')
-    plt.axvline(x=vertical_line_value, color='black', linestyle='--', label=None, linewidth=1)
-    plt.xlabel('Samples')
-    plt.ylabel('Vocabulary Size')
+    # plt.ylim(-40000, 600000)
+
+    directory = [d for d in os.scandir('data/vocab_lists_ff_2021-07-27_15-32-00')]
+    for dir_entry in directory:
+        # if dir_entry.name in ['verbatim_spacetokenized.json', 'verbatimoriginal_spacetokenized.json']:
+        #     continue
+        if dir_entry.name not in ['ipa.json', 'verbatim.json', 'dolgo.json', 'asjp.json']:
+            continue
+        types = set()
+        cum_vocab_sizes = [0]
+        print(f'Loading {dir_entry.name} data from {dir_entry.path}...')
+        with open(dir_entry.path, 'r') as f:
+            vocab_lists = json.load(f)['data']  # [:1000]
+            for i in tqdm(indices):
+                types.update(vocab_lists[i])
+                cum_vocab_sizes.append(len(types))
+            vocab_list_verbatim = None
+            plt.plot(cum_vocab_sizes, label=labels[dir_entry.name[:-5]])
+
+    if order in ['inorder', 'inreverseorder']:
+        plt.axvline(x=vertical_line_value, color='black', linestyle='--', label=None, linewidth=1)
+        plt.text(vertical_line_value + (plt.gca().get_xlim()[1] - vertical_line_value) / 2, 0, text_right, horizontalalignment='center')
+        plt.text(vertical_line_value / 2, 0, text_left, horizontalalignment='center')
+
+    plt.xlabel('Text pairs processed')
+    plt.ylabel('Vocabulary size')
     plt.legend()
-    plt.savefig(f'data/cum_vocab_size_ff_inreverseorder_properboth.svg', format='svg', bbox_inches='tight')
+    plt.savefig(f'data/cum_vocab_size_ff_{order}_all.pdf', format='pdf', bbox_inches='tight')
 
 
 def individual_vocab_size():
@@ -413,10 +448,10 @@ def ff_textlengths():
 
 
 if __name__ == '__main__':
-    # plot_vocab_lists()
+    plot_vocab_lists()
     # individual_vocab_size()
     # individual_text_length()
     # count_authors()
     # char_frequencies()
     # spell_check()
-    ff_textlengths()
+    # ff_textlengths()
