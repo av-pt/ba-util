@@ -88,10 +88,10 @@ def plot(type_dto, name):
             vssf = f'  {vssf}'
         if sorted_dto_list[i][0] == '$Verbatim$':
             continue
-        # plt.text(i, plt.gca().get_ylim()[1] + 100, vssf, ha='center', rotation='vertical', color=color)
-        # plt.text(i, sorted_dto_list[i][1], vssf, ha='center', rotation='vertical', color=color)
+        plt.text(i, plt.gca().get_ylim()[1] + 100, vssf, ha='center', rotation='vertical', color=color)
+        plt.text(i, sorted_dto_list[i][1], vssf, ha='center', rotation='vertical', color=color)
 
-    plt.savefig(name, format='svg', bbox_inches='tight')
+    # plt.savefig(name, format='svg', bbox_inches='tight')
     plt.savefig(f'{name[:-4]}.pdf', format='pdf', bbox_inches='tight')
 
 
@@ -140,17 +140,6 @@ def vocab_list(directory, output_tag):
     """
     timestamp = now()
 
-
-
-    # verbatim_dto = dict()
-    # verbatimoriginal_dto = dict()
-    # ipa_dto = dict()
-    # punct_dto = dict()
-
-    # verbatim_vocab_list = []
-    # verbatimoriginal_vocab_list = []
-    # ipa_vocab_list = []
-    # punct_vocab_list = []
     out_folder = os.path.join('data', f'vocab_lists_{output_tag}_{timestamp}')
     os.makedirs(out_folder, exist_ok=True)
 
@@ -177,15 +166,6 @@ def vocab_list(directory, output_tag):
                                          for token in text.split(' ')
                                          if any(c.isalpha() for c in token)]))
                     types.update(newtypes)
-
-                # if dir_entry.name == 'verbatim':
-                #     verbatim_vocab_list.append(newtypes)
-                # if dir_entry.name == 'verbatimoriginal':
-                #     verbatimoriginal_vocab_list.append(newtypes)
-                # if dir_entry.name == 'ipa':
-                #     ipa_vocab_list.append(newtypes)
-                # if dir_entry.name == 'punct':
-                #     punct_vocab_list.append(newtypes)
                 vocab_list.append(newtypes)
 
         # if dir_entry.name == 'verbatim':
@@ -194,26 +174,6 @@ def vocab_list(directory, output_tag):
             dto['data'] = vocab_list
             json.dump(dto, f)
         dto = None
-        # if dir_entry.name == 'verbatim':
-        #     with open(os.path.join(out_folder, 'verbatim.json'), 'w') as f:
-        #         verbatim_dto['data'] = verbatim_vocab_list
-        #         json.dump(verbatim_dto, f)
-        #     verbatim_dto = None
-        # if dir_entry.name == 'verbatimoriginal':
-        #     with open(os.path.join(out_folder, 'verbatimoriginal.json'), 'w') as f:
-        #         verbatimoriginal_dto['data'] = verbatimoriginal_vocab_list
-        #         json.dump(verbatimoriginal_dto, f)
-        #     verbatimoriginal_dto = None
-        # if dir_entry.name == 'ipa':
-        #     with open(os.path.join(out_folder, 'ipa.json'), 'w') as f:
-        #         ipa_dto['data'] = ipa_vocab_list
-        #         json.dump(ipa_dto, f)
-        #     ipa_dto = None
-        # if dir_entry.name == 'punct':
-        #     with open(os.path.join(out_folder, 'punct.json'), 'w') as f:
-        #         punct_dto['data'] = punct_vocab_list
-        #         json.dump(punct_dto, f)
-        #     punct_dto = None
 
 
 def count_characters(directory, output_filename):
