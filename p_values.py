@@ -105,7 +105,6 @@ def p():
     results = load_teahan03_results('../teahan03-phonetic/data/evaluated_2021-07-31_02-15-53_gb_r05_final')  # r = 0.05
     verbatim = 'verbatim'
 
-    # print(results[verbatim]['results']['0']['f1'])
     nr_samples = results[verbatim]['folds']  # 10
     df = nr_samples - 1  # 9, degrees of freedom
     nr_of_experiments = len(results[verbatim]['results']['0']['f1'] + results[verbatim]['results']['1']['f1'] + results[verbatim]['results']['2']['f1'])  # 30
@@ -121,45 +120,50 @@ def p():
         if system == verbatim:
             continue
         for measure in measures:
-            # print(measure)
             original = np.array(results[verbatim]['results']['0'][measure] + results[verbatim]['results']['1'][measure] + results[verbatim]['results']['2'][measure])
             changed = np.array(results[system]['results']['0'][measure] + results[system]['results']['1'][measure] + results[system]['results']['2'][measure])
             d = original - changed
             x = mean(d)
             s = stdev(d)
-            # print(d, x, s)
-            # sys.exit(0)
             delta = 0  # Hypothesized mean difference is 0 because null hypothesis is that the means of original and changed are equal
             t = (x - delta) * nr_samples / s
-            # print(t)
+
             # Alternate hypothesis: u1 != u2, Increase or decrease in performance is statistically significant.
             p_inc = 2 * t_dist.cdf(-abs(t), df)
             if p_inc < alpha_corrected_extremelysign:
-                evaluation[system][measure] = '***'
+                evaluation[system][measure] = '^{*\\! *\\! *}'
             elif p_inc < alpha_corrected_verysign:
-                evaluation[system][measure] = '**'
+                evaluation[system][measure] = '^{*\\! *}'
             elif p_inc < alpha_corrected_sign:
-                evaluation[system][measure] = '*'
+                evaluation[system][measure] = '^{*}'
             else:
-                evaluation[system][measure] = '='
+                evaluation[system][measure] = ''
 
-    # Print table
+    # Print table with absolute values and asterisks
     measures = ['precision', 'recall', 'f1', 'f_05_u', 'c_at_1']
     print('\\bf System', end=' & ')
     for measure in measures:
         print(f'\\bf {measure_to_label[measure]}', end=' & ')
     print()
     print('\\midrule')
+    # Place verbatim here when putting it in the .tex file
+    print('\\midrule')
     for system, eval in evaluation.items():
-        if system == verbatim:
-            continue
         print(labels[system], end=' & ')
         for measure in measures:
-            temp = f'${eval[measure]}$'
-            if temp == '$$':
-                temp = ''
-            print(temp, end=' & ')
-        print()
+
+            if system == verbatim:
+                print(f'${round(results[system]["results"]["avg"][measure], 4)}$', end=' & ')
+            else:
+                verbatim_value = results[verbatim]["results"]["avg"][measure]
+                current_value = results[system]["results"]["avg"][measure]
+                temp = eval[measure]
+                if temp != '':
+                    if verbatim_value >= current_value:
+                        temp = f'{temp}_{{-}}'
+                    else:
+                        temp = f'{temp}_{{+}}'
+                print(f'${round(results[system]["results"]["avg"][measure], 4)}{temp}$', end=' & ')
 
 
 if __name__ == '__main__':
