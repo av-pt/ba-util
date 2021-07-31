@@ -18,6 +18,7 @@ ujson = "*"
 adjusttext = "*"
 aspell-python-py3 = "*"
 sklearn = "*"
+scipy = "*"
 
 [dev-packages]
 

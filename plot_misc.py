@@ -85,11 +85,12 @@ def plot_vocab_lists():
     # With long and short texts removed: 27178 same-author, 23771 diff-author, 50949 total
     indices = [x for x in range(50949)]
 
-    order = 'inorder'
+    # order = 'inorder'
     # order = 'inreverseorder'
     # order = 'shuffled'
     # order = 'inorder_onlysame'
     # order = 'inorder_onlydiff'
+    order = None
 
     if order == 'inorder':
         vertical_line_value = 27178
@@ -119,17 +120,20 @@ def plot_vocab_lists():
     #         indices_diff.append(i)
     # indices = indices_diff + indices_same
     # print(indices)
+    indices = range(262)
+    order = 'indefaultorder'
 
     plt.rcParams['mathtext.fontset'] = 'dejavuserif'
     plt.figure(figsize=(5, 3.5))
     # plt.ylim(-40000, 600000)
 
-    directory = [d for d in os.scandir('data/vocab_lists_ff_2021-07-27_15-32-00')]
+    # directory = [d for d in os.scandir('data/vocab_lists_ff_2021-07-27_15-32-00')]
+    directory = [d for d in os.scandir('data/vocab_lists_gb_ngrams_2021-07-29_22-08-01')]
     for dir_entry in directory:
         # if dir_entry.name in ['verbatim_spacetokenized.json', 'verbatimoriginal_spacetokenized.json']:
         #     continue
-        if dir_entry.name not in ['ipa.json', 'verbatim.json', 'dolgo.json', 'asjp.json']:
-            continue
+        # if dir_entry.name not in ['ipa.json', 'verbatim.json', 'dolgo.json', 'asjp.json']:
+        #     continue
         types = set()
         cum_vocab_sizes = [0]
         print(f'Loading {dir_entry.name} data from {dir_entry.path}...')
@@ -149,7 +153,7 @@ def plot_vocab_lists():
     plt.xlabel('Text pairs processed')
     plt.ylabel('Vocabulary size')
     plt.legend()
-    plt.savefig(f'data/cum_vocab_size_ff_{order}_all.pdf', format='pdf', bbox_inches='tight')
+    plt.savefig(f'data/cum_vocab_size_gb_{order}_ngrams.pdf', format='pdf', bbox_inches='tight')
 
 
 def individual_vocab_size():
@@ -444,7 +448,6 @@ def ff_textlengths():
     # Values for correctly cleaned verbatim text, Fan-fiction dataset
     # Zero-length texts: 2
     # Texts <20500 and >=22500: 1698, percentage: 0.016140377559361988
-
 
 
 if __name__ == '__main__':

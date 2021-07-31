@@ -145,8 +145,8 @@ def vocab_list(directory, output_tag):
 
     for dir_entry in directory:
         vocab_list = []
-        if dir_entry.name in ['verbatim', 'verbatimoriginal', 'ipa', 'punct']:
-            continue
+        # if dir_entry.name not in ['punct_4grams']:
+        #     continue
         paths = glob(os.path.join(dir_entry.path, '*.jsonl'))
         path_to_jsonl = [x for x in paths if not x.endswith('-truth.jsonl')][0]
         print(f'Creating vocab lists for {dir_entry.name}')
@@ -186,6 +186,7 @@ def count_characters(directory, output_filename):
     char_dto['Char Document Frequencies'] = dict()
     char_dto['Pairs of only ASCII chars'] = dict()
     char_dto['Avg. percentage of ASCII chars over all chars'] = dict()
+    char_dto['Alphabet sizes'] = dict()
     c_char = Counter()
     c_docfreq = Counter()
     dataset_character_length = 0
@@ -213,6 +214,7 @@ def count_characters(directory, output_filename):
         char_dto['Pairs of only ASCII chars'][dir_entry.name] = valid_texts
         char_dto['Avg. percentage of ASCII chars over all chars'][
             dir_entry.name] = valid_char_count / dataset_character_length
+        char_dto['Alphabet sizes'][dir_entry.name] = len(c_char)
         c_char.clear()
         c_docfreq.clear()
         valid_texts = 0
