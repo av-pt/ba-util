@@ -172,7 +172,7 @@ def main():
                 plt.text(i, values[i], diff, ha='center', rotation='vertical', color=color)
 
             plt.savefig(os.path.join(out_path, f'{measure}.svg'), format='svg', bbox_inches='tight')
-            plt.savefig(os.path.join(out_path, f'{measure}.eps'), format='eps', bbox_inches='tight')
+            plt.savefig(os.path.join(out_path, f'{measure}.pdf'), format='pdf', bbox_inches='tight')
             plt.clf()
     else:
         with open(args.vocab_sizes, 'r') as f:
