@@ -35,7 +35,7 @@ from scipy.stats import t as t_dist
 
 
 manual_order = [
-    'verbatimoriginal',
+    #'verbatimoriginal',
     'verbatim',
     'ipa',
     'asjp',
@@ -45,8 +45,8 @@ manual_order = [
     'soundex',
     'cv',
     'ipa_4grams',
-    'asjp_4grams',
     'punct_4grams',
+    'asjp_4grams',
     'dolgo_4grams',
     'cv_4grams',
     'punct',
@@ -69,8 +69,8 @@ labels = {
     'punct_lemma_stop': '$PLS$',
     'ipa_4grams': '$IPA$ $4$-$grams$',
     'dolgo_4grams': '$Dolgo$ $4$-$grams$',
-    'asjp_4grams': '$ASJP$ $4$-$grams$',
     'punct_4grams': '$P$ $4$-$grams$',
+    'asjp_4grams': '$ASJP$ $4$-$grams$',
     'cv_4grams': '$CV$ $4$-$grams$',
     'punct_4grams': '$P$ $4$-$grams$',
     'verbatimoriginal': '$Verbatim$ $(orig.)$',
@@ -224,7 +224,7 @@ def p():
             diff = f'  {diff}'
         plt.text(i, 1, diff, ha='center', rotation='vertical', color=color)
 
-    plt.savefig(f'data/{measure_to_plot}_gb_unmasking.pdf', format='pdf', bbox_inches='tight')
+    plt.savefig(f'data/{measure_to_plot}_gb_unmasking_correct_order.pdf', format='pdf', bbox_inches='tight')
     plt.clf()
 
 
