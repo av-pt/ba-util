@@ -1,5 +1,5 @@
 """
-Calculate p-values.
+Script for calculating significance values and visualizing results.
 Input .json structure for ONE transcription:
 {
     1:{
@@ -94,6 +94,9 @@ measure_to_label = {
 
 
 def load_unmasking_results(input_folder):
+    """
+    Loader for Unmasking results
+    """
     results = dict()
     directory = [d for d in os.scandir(input_folder)]
     print(f'Found {len(directory)} evaluation results.')
@@ -108,6 +111,9 @@ def load_unmasking_results(input_folder):
 
 
 def load_teahan03_results(input_folder):
+    """
+    Loader for teahan03 results
+    """
     results = dict()
     directory = [d for d in os.scandir(input_folder)]
     print(f'Found {len(directory)} evaluation results.')
@@ -122,7 +128,7 @@ def load_teahan03_results(input_folder):
 
 def p():
     """
-    Determine p-values.
+    Determine p-values, generate table, and plot.
     """
     # results = load_teahan03_results('../teahan03-phonetic/data/evaluated_2021-07-30_22-18-28_ff_r05_final_thisone')  # r = 0.05
     # verbatim = 'verbatimoriginal'

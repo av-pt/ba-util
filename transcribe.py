@@ -1,3 +1,14 @@
+"""
+Script to transcribe datasets in PAN20 format.
+
+Usage:
+python transcribe.py \
+    -i ../unmasking/NAACL-19/corpus/pan20/gb.jsonl \
+    -o ../unmasking/NAACL-19/corpus/pan20/transcribed \
+    -t ../unmasking/NAACL-19/corpus/pan20/gb-truth.jsonl \
+    -s
+"""
+
 import argparse
 import json
 import os
@@ -10,10 +21,6 @@ from tqdm import tqdm
 
 from clean_ff import clean, replace_special
 from converters import transcribe_horizontal_gb, transcribe_horizontal_ff
-
-"""
-python transcribe.py -i ../unmasking/NAACL-19/corpus/pan20/gb.jsonl -o ../unmasking/NAACL-19/corpus/pan20/transcribed -t ../unmasking/NAACL-19/corpus/pan20/gb-truth.jsonl -s
-"""
 
 
 def now(): return time.strftime("%Y-%m-%d_%H-%M-%S")

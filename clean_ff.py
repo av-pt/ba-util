@@ -1,6 +1,6 @@
 """
-Script to clean the PAN20 Fan-fiction dataset.
-Executes the following steps in order:
+Script to clean the PAN20 Fanfiction dataset.
+Executes the following steps:
  - Remove tokens longer than 23 characters
  - Remove tokens with 3 or more punctuation symbols (37510 types)
  - Remove tokens containing symbols that are not in transcribable_ff or punctuation

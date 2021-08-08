@@ -1,3 +1,8 @@
+"""
+Script providing transcribe_horizontal_gb / transcribe_horizontal_ff
+functions to transcribe a text to a range of transcription systems.
+"""
+
 import atexit
 import os
 import re

@@ -46,7 +46,7 @@ labels = {
 
 def split_if_gb(type_dto, name):
     # If 'ipa_4grams' is in the results, it is the GB dataset and they
-    # plotted separately
+    # are plotted separately
     if 'ipa_4grams' in type_dto.keys():
         pt_type_dto = {k: v for k, v in type_dto.items() if not k.endswith('_4grams')}
         ngram_type_dto = {k: v for k, v in type_dto.items() if k.endswith('_4grams') or k == 'verbatim'}

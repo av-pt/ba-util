@@ -47,22 +47,10 @@ labels = {
 # print(ff_alphabet[:10])
 
 
-def plot_doc_freqs():
-    # with open('data/char_doc_freq_2021-07-12_15-39-53_gb.json', 'r') as f:
-    with open('data/char_doc_freq_2021-07-12_15-49-40_ff.json', 'r') as f:
-        ff_doc_freqs = json.load(f)
-
-    a = np.array(list(ff_doc_freqs['verbatim'].values()))
-    p = [np.percentile(a, i) for i in range(101)][-11:]
-    print(p)
-    plt.figure(figsize=(5, 3.5))
-    plt.plot(range(90, 101), p)
-    plt.xlabel('Percentile')
-    plt.ylabel('Document Frequency')
-    plt.savefig(f'doc_freq_ff_zoom.svg', format='svg', bbox_inches='tight')
-
-
 def plot_cum_vocab_sizes():
+    """
+    Plot a list of accumulated vocab sizes.
+    """
     # with open('data/verbatim_cum_vocab_size_gb_2021-07-15_21-33-25.json', 'r') as f:
     with open('data/verbatim_cum_vocab_size_ff_2021-07-15_21-56-28.json', 'r') as f:
         verbatim_cum_vocab_size = json.load(f)['data'][:262]
@@ -79,6 +67,10 @@ def plot_cum_vocab_sizes():
     plt.savefig(f'data/cum_vocab_size_test_ff.svg', format='svg', bbox_inches='tight')
 
 def plot_vocab_lists():
+    """
+    Given a list of sets of tokens, accumulate the total vocabulary and
+    plot Heaps' Law.
+    """
 
     # FF indices
     # There are 27834 same-author pairs and 24767 different-author pairs
@@ -157,7 +149,9 @@ def plot_vocab_lists():
 
 
 def individual_vocab_size():
-
+    """
+    Given a dataset, plot the individual vocabulary sizes of the texts.
+    """
     # indices = [x for x in range(len(vocab_list_verbatim))]  # Indices of data points
     indices = [x for x in range(52583)]
     # indices = [x for x in range(262)]
@@ -200,6 +194,9 @@ def individual_vocab_size():
 
 
 def individual_text_length():
+    """
+    Given a dataset, plot the individual text lengths of the texts.
+    """
     # indices = [x for x in range(len(vocab_list_verbatim))]  # Indices of data points
     indices = [x for x in range(52583)]
     # indices = [x for x in range(262)]
@@ -303,6 +300,10 @@ def count_authors():
         json.dump(dto, f)
 
 def char_frequencies():
+    """
+    Given a dataset, determine the percentage of ASCII characters in the
+    same-author and different-author parts respectively.
+    """
     same_counter = Counter()
     diff_counter = Counter()
     c = 0
@@ -326,7 +327,10 @@ def char_frequencies():
 
 
 def spell_check():
-    # TODO: 'words' -> 'types', 'proper' -> e.g. 'invocab' / 'iv'
+    """
+    Numerous sanity check involving ASPELL for same-author and
+    different-author part.
+    """
     s = aspell.Speller('lang', 'en')
     same_vocab_ff = set()
     diff_vocab_ff = set()
@@ -430,6 +434,9 @@ def spell_check():
 
 
 def ff_textlengths():
+    """
+    Plot text lengths of the Fanfiction dataset.
+    """
     lengths = []
     with open('../teahan03-phonetic/data/verbatim_pan20-authorship-verification-training-small.jsonl') as f:
         for line in tqdm(f):
